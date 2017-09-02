@@ -11,5 +11,3 @@ def remove_adjacent(lst):
 # Example output: [1, 2, 3, 4, 5, 6]
 def linear_merge(lst1, lst2):
     return
-
-
