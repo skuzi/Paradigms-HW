@@ -54,7 +54,3 @@ def front_back(a, b):
     a_back = a[(n + 1)//2:]
     b_back = b[(m + 1)//2:]
     return a_front + b_front + a_back + b_back
-for i in range(3):
-    a = input()
-    b = input()
-    print(front_back(a, b))
