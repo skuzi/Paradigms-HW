@@ -1,12 +1,8 @@
 def remove_adjacent(lst):
-    new_lst = []
-    for i in range(len(lst)):
-        if len(new_lst) == 0:
-            new_lst.append(lst[i])
-        elif new_lst[-1] == lst[i]:
-            continue
-        else:
-            new_lst.append(lst[i])
+    new_lst = [lst[0]]
+    for i in lst[1:]:
+        if i != new_lst[-1]:
+            new_lst.append(i)
     return new_lst
 
 
