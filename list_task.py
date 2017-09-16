@@ -1,5 +1,5 @@
 def remove_adjacent(lst):
-    new_lst = [lst[0]]
+    new_lst = lst[:1]
     for i in lst[1:]:
         if i != new_lst[-1]:
             new_lst.append(i)
