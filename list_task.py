@@ -1,5 +1,13 @@
 def remove_adjacent(lst):
-    return list(set(lst))
+    new_lst = []
+    for i in range(len(lst)):
+        if len(new_lst) == 0:
+            new_lst.append(lst[i])
+        elif new_lst[-1] == lst[i]:
+            continue
+        else:
+            new_lst.append(lst[i])
+    return new_lst
 
 
 def linear_merge(lst1, lst2):
