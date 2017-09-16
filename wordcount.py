@@ -59,8 +59,8 @@ def print_words(filename):
 
 
 def print_top(filename):
-    book = sorted(cnt(filename), key = lambda x: x[1])
-    for word, count in book[-1:-20:-1]:
+    book = sorted(cnt(filename), key = lambda x: x[1], reverse = 1) 
+    for word, count in book[:20]:
         print(word, str(count))
 
 
