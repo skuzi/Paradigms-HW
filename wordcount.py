@@ -38,6 +38,31 @@ def read_words(filename):
             words.extend(line.split())
     return words
 
+def count(filename):
+    words = read_words(filename);
+    book = {}
+    for i in range(len(words)):
+        word = words[i].lower()
+        if word not in book:
+            book[word] = 1
+        else:
+            book[word] += 1
+    return zip(book.values(), book.keys())
+
+def print_words(filename):
+    book = count(filename)
+    for count, word in sorted(book):
+       print(word + ' ' + str(count))
+
+def print_top(filename):
+    book = count(filename)
+    cnt = 0
+    for _, word in reversed(sorted(book)):
+        if cnt == 20:
+            break
+        else:
+            print(word)
+            cnt += 1
 # Define print_words(filename) and print_top(filename) functions.
 # You could write a helper utility function that reads a file
 # and builds and returns a word/count dict for it.
