@@ -10,7 +10,7 @@ def verbing(s):
 def not_bad(s):
     a = s.find('not')
     b = s.find('bad')
-    if a < b:
+    if a < b and a != -1:
         s = s[:a] + 'good' + s[b + 3:]
     return s
 
