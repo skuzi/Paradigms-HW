@@ -40,7 +40,7 @@ def read_words(filename):
     return words
 
 
-def cnt(filename, flag):
+def cnt(filename):
     words = read_words(filename)
     book = {}
     for word in words:
@@ -49,22 +49,19 @@ def cnt(filename, flag):
             book[word] = 1
         else:
             book[word] += 1
-    if flag == 1:
-        return zip(book.values(), book.keys())
-    else:
-        return zip(book.keys(), book.values())
+    return book.items()
 
 
 def print_words(filename):
-    book = cnt(filename, 0)
-    for word, count in sorted(book):
-        print(word + ' ' + str(count))
+    book = sorted(cnt(filename))
+    for word, count in book:
+        print(word, str(count))
 
 
 def print_top(filename):
-    book = sorted(cnt(filename, 1))
-    for count, word in book[-1:-20:-1]:
-        print(word + ' ' + str(count))
+    book = sorted(cnt(filename), key = lambda x: x[1])
+    for word, count in book[-1:-20:-1]:
+        print(word, str(count))
 
 
 def main():
