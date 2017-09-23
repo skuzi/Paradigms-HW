@@ -9,7 +9,7 @@ hasher = hasherr()
 def go(directory):
     for d, dirs, files in os.walk(directory):
         for f in files:
-            if f[0] != '~' and f[0] != '.' and not os.path.islink(f_pname):
+            if f[0] != '~' and f[0] != '.' and not os.path.islink(f):
                 pathes.append(os.path.join(d, f))
         for dirr in dirs:
             go(dirr)
