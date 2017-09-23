@@ -2,20 +2,8 @@ import sys
 import os
 from hashlib import sha1 as hasherr
 
-pathes = []
-hasher = hasherr()
 
-
-def go(directory):
-    for d, dirs, files in os.walk(directory):
-        for f in files:
-            if f[0] != '~' and f[0] != '.' and not os.path.islink(f):
-                pathes.append(os.path.join(d, f))
-        for dirr in dirs:
-            go(dirr)
-
-
-def get_hash(filename):
+def get_hash(filename, hasher):
     with open(filename, mode='rb') as f:
         while True:
             data = f.read(8192)
@@ -24,22 +12,29 @@ def get_hash(filename):
             hasher.update(data)
     return hasher.digest()
 
+
 def main():
     params = sys.argv
     if len(params) > 1:
         directory = params[1]
-    go(directory)
+    pathes = []
+    hasher = hasherr()
+    for d, _, files in os.walk(directory):
+        for f in files:
+            if f[0] != '~' and f[0] != '.' and not os.path.islink(f):
+                pathes.append(os.path.join(d, f))
     hashes = {}
     for path in pathes:
-        h = get_hash(path)
+        h = get_hash(path, hasher)
         if h not in hashes:
-            hashes[h] = [1, [path]]
+            hashes[h] = [path]
         else:
-            hashes[h][1].append(path)
-            hashes[h][0] += 1
+            hashes[h].append(path)
         hasher = hasherr()
-    for cnt, files in hashes.values():
-        if cnt > 1:
+    for files in hashes.values():
+        if len(files) > 1:
             print(':'.join(files))
+
+
 if __name__ == "__main__":
     main()
