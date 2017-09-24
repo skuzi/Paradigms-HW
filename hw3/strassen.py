@@ -6,18 +6,19 @@ def strassen(a, b):
     n = len(a)
     assert n == len(b)
     assert len(a[0]) == len(b[0])
+    half = n//2
     if n <= 64:
         return np.dot(a, b)
     else:
-        a11 = a[:(n//2), :(n//2)]
-        a12 = a[:(n//2), (n//2):]
-        a21 = a[(n//2):, :(n//2)]
-        a22 = a[(n//2):, (n//2):]
+        a11 = a[:half, :half]
+        a12 = a[:half, half:]
+        a21 = a[half:, :half]
+        a22 = a[half:, half:]
 
-        b11 = b[:(n//2), :(n//2)]
-        b12 = b[:(n//2), (n//2):]
-        b21 = b[(n//2):, :(n//2)]
-        b22 = b[(n//2):, (n//2):]
+        b11 = b[:half, :half]
+        b12 = b[:half, half:]
+        b21 = b[half:, :half]
+        b22 = b[half:, half:]
 
         p1 = strassen(a11 + a22, b11 + b22)
         p2 = strassen(a21 + a22, b11)
@@ -37,19 +38,15 @@ def strassen(a, b):
 
 def main():
     n = int(input())
-    a = [[int(j) for j in input().split()] for i in range(n)]
-    b = [[int(j) for j in input().split()] for i in range(n)]
+    read_a = [[int(j) for j in input().split()] for i in range(n)]
+    read_b = [[int(j) for j in input().split()] for i in range(n)]
     realsize = 2 ** (math.ceil(math.log(n, 2)))
-    print(realsize)
-    a = np.array(a)
-    print(a)
-    b = np.array(b)
-    print(b)
-    if realsize != n:
-        a = np.vstack((np.hstack((a, np.array([[0 for i in range(realsize - n)] for j in range(n)]))), np.array([[0 for i in range(realsize)] for j in range(realsize - n)])))
-        b = np.vstack((np.hstack((b, np.array([[0 for i in range(realsize - n)] for j in range(n)]))), np.array([[0 for i in range(realsize)] for j in range(realsize - n)])))
+    a = np.zeros((realsize, realsize))
+    b = np.zeros((realsize, realsize))
+    a[:n, :n] = read_a
+    b[:n, :n] = read_b
     c = strassen(a, b)
-    print(c[:n, :n])
+    print(c)
 
 
 if __name__ == "__main__":
