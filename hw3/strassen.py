@@ -41,12 +41,15 @@ def main():
     read_a = [[int(j) for j in input().split()] for i in range(n)]
     read_b = [[int(j) for j in input().split()] for i in range(n)]
     realsize = 2 ** (math.ceil(math.log(n, 2)))
-    a = np.zeros((realsize, realsize))
-    b = np.zeros((realsize, realsize))
+    a = np.zeros((realsize, realsize), dtype=np.int)
+    b = np.zeros((realsize, realsize), dtype=np.int)
     a[:n, :n] = read_a
     b[:n, :n] = read_b
     c = strassen(a, b)
-    print(c[:n, :n])
+    for row in c[:n, :n]:
+    	for elem in row:
+    		print(elem, end=' ')
+    	print()
 
 
 if __name__ == "__main__":
