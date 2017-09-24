@@ -46,7 +46,7 @@ def main():
     a[:n, :n] = read_a
     b[:n, :n] = read_b
     c = strassen(a, b)
-    print(c)
+    print(c[:n, :n])
 
 
 if __name__ == "__main__":
