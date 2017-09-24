@@ -47,9 +47,7 @@ def main():
     b[:n, :n] = read_b
     c = strassen(a, b)
     for row in c[:n, :n]:
-    	for elem in row:
-    		print(elem, end=' ')
-    	print()
+        print(*row)
 
 
 if __name__ == "__main__":
