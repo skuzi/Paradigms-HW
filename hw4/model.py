@@ -103,7 +103,7 @@ class Conditional:
                     value = expr.evaluate(scope)
         else:
             for expr in self.if_true:
-                value = expr.evaluate(scope) 
+                value = expr.evaluate(scope)
         return value if value is not None else 0
 
 
@@ -190,18 +190,18 @@ class BinaryOperation:
         left = self.lhs.evaluate(scope).value
         right = self.rhs.evaluate(scope).value
         op = self.op
-        results = {'+':Number(left + right),
-                   '-':Number(left - right),
-                   '*':Number(left * right),
-                   '/':Number(-1 if right == 0 else left / right),
-                   '==':Number(1 if left == right else 0),
-                   '!=':Number(0 if left == right else 1),
-                   '<':Number(1 if left < right else 0),
-                   '>':Number(0 if left < right else 1),
-                   '<=':Number(1 if left <= right else 0),
-                   '>=':Number(1 if left >= right else 0),
-                   '&&':Number(1 if left != 0 and right != 0 else 0),
-                   '||':Number(1 if left != 0 or right != 0 else 0)}
+        results = {'+': Number(left + right),
+                   '-': Number(left - right),
+                   '*': Number(left * right),
+                   '/': Number(-1 if right == 0 else left / right),
+                   '==': Number(1 if left == right else 0),
+                   '!=': Number(0 if left == right else 1),
+                   '<': Number(1 if left < right else 0),
+                   '>': Number(0 if left < right else 1),
+                   '<=': Number(1 if left <= right else 0),
+                   '>=': Number(1 if left >= right else 0),
+                   '&&': Number(1 if left != 0 and right != 0 else 0),
+                   '||': Number(1 if left != 0 or right != 0 else 0)}
         return results[op]
 
 
