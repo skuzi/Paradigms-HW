@@ -190,8 +190,8 @@ class BinaryOperation:
            '>': op.gt,
            '<=': op.le,
            '>=': op.ge,
-           '&&': lambda x, y : 0 if x == 0 or y == 0 else 1,
-           '||': lambda x, y : 0 if x == 0 and y == 0 else 1}
+           '&&': lambda x, y : bool(x) and bool(y),
+           '||': lambda x, y : bool(x) or bool(y)}
 
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
