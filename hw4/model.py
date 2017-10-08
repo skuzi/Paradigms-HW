@@ -1,3 +1,6 @@
+import operator as op
+
+
 class Scope:
 
     """Scope - представляет доступ к значениям по именам
@@ -34,8 +37,8 @@ class Number:
     def __eq__(self, other):
         return self.value == other.value
 
-    def __ne__(self, other):
-        return self.value != other.value
+    def __bool__(self):
+        return True if self.value != 0 else False
 
     def __hash__(self, other):
         return hash(self.value)
@@ -95,15 +98,11 @@ class Conditional:
         self.if_false = if_false
 
     def evaluate(self, scope):
-        num = self.condition.evaluate(scope).value
+        num = self.condition.evaluate(scope)
         value = None
-        if num == 0:
-            if self.if_false is not None:
-                for expr in self.if_false:
-                    value = expr.evaluate(scope)
-        else:
-            for expr in self.if_true:
-                value = expr.evaluate(scope)
+        branch = self.if_true if num else self.if_false
+        for expr in branch:
+            value = expr.evaluate(scope)
         return value if value is not None else 0
 
 
@@ -180,6 +179,19 @@ class BinaryOperation:
     Поддерживаемые операции:
     “+”, “-”, “*”, “/”, “%”, “==”, “!=”,
     “<”, “>”, “<=”, “>=”, “&&”, “||”."""
+    ops = {'+': op.add,
+           '-': op.sub,
+           '*': op.mul,
+           '/': op.floordiv,
+           '%': op.mod,
+           '==': op.eq,
+           '!=': op.ne,
+           '<': op.lt,
+           '>': op.gt,
+           '<=': op.le,
+           '>=': op.ge,
+           '&&': op.and_,
+           '||': op.or_}
 
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
@@ -189,20 +201,7 @@ class BinaryOperation:
     def evaluate(self, scope):
         left = self.lhs.evaluate(scope).value
         right = self.rhs.evaluate(scope).value
-        op = self.op
-        results = {'+': Number(left + right),
-                   '-': Number(left - right),
-                   '*': Number(left * right),
-                   '/': Number(-1 if right == 0 else left / right),
-                   '==': Number(1 if left == right else 0),
-                   '!=': Number(0 if left == right else 1),
-                   '<': Number(1 if left < right else 0),
-                   '>': Number(0 if left < right else 1),
-                   '<=': Number(1 if left <= right else 0),
-                   '>=': Number(1 if left >= right else 0),
-                   '&&': Number(1 if left != 0 and right != 0 else 0),
-                   '||': Number(1 if left != 0 or right != 0 else 0)}
-        return results[op]
+        return Number(self.ops[self.op](left, right))
 
 
 class UnaryOperation:
@@ -220,7 +219,7 @@ class UnaryOperation:
         if self.op == '-':
             return Number(-expr.value)
         else:
-            return Number(1 if expr.value == 0 else 0)
+            return Number(1 if expr else 0)
 
 
 def example():
