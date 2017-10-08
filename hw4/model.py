@@ -190,8 +190,8 @@ class BinaryOperation:
            '>': op.gt,
            '<=': op.le,
            '>=': op.ge,
-           '&&': op.and_,
-           '||': op.or_}
+           '&&': lambda x, y : 0 if x == 0 or y == 0 else 1,
+           '||': lambda x, y : 0 if x == 0 and y == 0 else 1}
 
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
@@ -219,7 +219,7 @@ class UnaryOperation:
         if self.op == '-':
             return Number(-expr.value)
         else:
-            return Number(1 if expr else 0)
+            return Number(0 if expr else 1)
 
 
 def example():
