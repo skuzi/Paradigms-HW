@@ -17,12 +17,12 @@ class PrettyPrinter:
         else:
             raise NotImplementedError(method_name)
         if is_statement:
-        	self.indent()
+            self.indent()
         try:
-        	return fn(tree)
+            return fn(tree)
         finally:
-        	if is_statement:
-        		print(';')
+            if is_statement:
+                print(';')
 
     def visitConditional(self, conditional):
         print('if (', end='')
@@ -67,10 +67,11 @@ class PrettyPrinter:
     def visitFunctionCall(self, fcall):
         self.visit(fcall.fun_expr, False)
         print('(', end='')
-        for arg in fcall.args[:-1]:
-            self.visit(arg, False)
-            print(',', end=' ')
-        self.visit(fcall.args[-1], False)
+        if fcall.args:
+            for arg in fcall.args[:-1]:
+                self.visit(arg, False)
+                print(',', end=' ')
+            self.visit(fcall.args[-1], False)
         print(')', end='')
 
     def visitBinaryOperation(self, boper):
@@ -99,7 +100,7 @@ class PrettyPrinter:
 
 if __name__ == '__main__':
     printer = PrettyPrinter()
-    function = Function(['a', 'b'], [Conditional(Number(42), [Number(42)], None)])
+    function = Function([], [])
     definition = FunctionDefinition('x', function)
     conditional = Conditional(BinaryOperation(Number(42), '-', Number(42)), [Conditional(BinaryOperation(BinaryOperation(Number(42),
                                                                                                                         '+',
@@ -112,3 +113,5 @@ if __name__ == '__main__':
     printer.visit(conditional)
     printer.visit(Read('x'))
     printer.visit(Print(BinaryOperation(Number(2), '+', Reference('a'))))
+    call = FunctionCall(Reference('foo'), [])
+    printer.visit(call)
