@@ -1,5 +1,7 @@
-from yat.model import Conditional, FunctionDefinition, FunctionCall, Function, Number, Read, Print, BinaryOperation, UnaryOperation, Reference
+from yat.model import Conditional, FunctionDefinition, FunctionCall, Function, Number, Read, Print, BinaryOperation, UnaryOperation, Reference, Scope
 from yat.printer import PrettyPrinter
+import copy
+
 
 class ConstantFolder:
     def visit(self, tree):
@@ -9,7 +11,8 @@ class ConstantFolder:
             fn = getattr(self, 'visit' + name)
         else:
             raise NotImplementedError(method_name)
-        return fn(tree)
+        new_tree = copy.deepcopy(tree)
+        return fn(new_tree)
 
     def visitConditional(self, conditional):
         conditional.condition = self.visit(conditional.condition)
@@ -42,7 +45,7 @@ class ConstantFolder:
         left = boper.lhs
         right = boper.rhs
         if isinstance(left, Number) and isinstance(right, Number):
-            return Number(boper.ops[boper.op](left.value, right.value))
+            return BinaryOperation(left, boper.op, right).evaluate(Scope())
         if boper.op == '*' and (isinstance(left, Number) and left.value == 0 or isinstance(right, Number) and right.value == 0):
             return Number(0)
         if isinstance(left, Reference) and isinstance(right, Reference) and right.name == left.name:
@@ -52,7 +55,7 @@ class ConstantFolder:
     def visitUnaryOperation(self, uoper):
         uoper.expr = self.visit(uoper.expr)
         if(isinstance(uoper.expr, Number)):
-            return UnaryOperation(uoper.op, uoper.expr).evaluate()
+            return UnaryOperation(uoper.op, uoper.expr).evaluate(Scope())
         else:
             return uoper
 
@@ -66,22 +69,23 @@ class ConstantFolder:
     def visitRead(self, read):
         return read
 
+
 if __name__ == '__main__':
-	printer = PrettyPrinter()
-	folder = ConstantFolder()
-	function = Function(['a', 'b'], [Conditional(Number(42), [Number(42)], None)])
-	definition = FunctionDefinition('x', function)
-	conditional = Conditional(BinaryOperation(Reference('a'), '-', BinaryOperation(Reference('a'), '-', Reference('a'))), [Conditional(BinaryOperation(BinaryOperation(Number(42),
-		                                                                                                                '+',
-		                                                                                                                Reference('a')),
-	                                                                                                    '*',
-	                                                                                                    Number(0)), 
-	                                                                                    [],
-	                                                                                    [Conditional(Number(42), [definition], [])])], [])
-	printer.visit(conditional)
-	conditional = folder.visit(conditional)
-	prnt = Print(BinaryOperation(Number(1), '+', BinaryOperation(Number(2), '+', BinaryOperation(Reference('a'), '-', Reference('a'))) ))
-	printer.visit(prnt)
-	prnt = folder.visit(prnt)
-	printer.visit(conditional)
-	printer.visit(prnt)
+    printer = PrettyPrinter()
+    folder = ConstantFolder()
+    function = Function(['a', 'b'], [Conditional(Number(42), [Number(42)], None)])
+    definition = FunctionDefinition('x', function)
+    conditional = Conditional(BinaryOperation(Reference('a'), '-', BinaryOperation(Reference('a'), '-', Reference('a'))), [Conditional(BinaryOperation(BinaryOperation(Number(42),
+                                                                                                                        '+',
+                                                                                                                        Reference('a')),
+                                                                                                        '*',
+                                                                                                        Number(0)),
+                                                                                        [],
+                                                                                        [Conditional(Number(42), [definition], [])])], [])
+    printer.visit(conditional)
+    conditional = folder.visit(conditional)
+    prnt = Print(BinaryOperation(Number(1), '+', BinaryOperation(Number(2), '+', BinaryOperation(Reference('a'), '-', Reference('a')))))
+    printer.visit(prnt)
+    prnt = folder.visit(prnt)
+    printer.visit(conditional)
+    printer.visit(prnt)
