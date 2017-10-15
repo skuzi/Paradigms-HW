@@ -2,8 +2,12 @@ from yat.model import Conditional, FunctionDefinition, FunctionCall, Function, N
 
 class PrettyPrinter:
     """docstring for PrettyPrinter"""
-    ind_len = 0
-    ind = "    "
+    def __init__(self, ind="    ", ind_len=0):
+        self.ind_len = ind_len
+        self.ind = ind
+
+    def indent(self):
+        print(self.ind * self.ind_len, end='')
 
     def visit(self, tree, is_statement=True):
         name = tree.__class__.__name__
@@ -12,33 +16,40 @@ class PrettyPrinter:
             fn = getattr(self, 'visit' + name)
         else:
             raise NotImplementedError(method_name)
-        return fn(tree, is_statement)
+        if is_statement:
+        	self.indent()
+        try:
+        	return fn(tree)
+        finally:
+        	if is_statement:
+        		print(';')
 
-    def visitConditional(self, conditional, is_statement=True):
-        print(self.ind * self.ind_len + 'if (', end='')
+    def visitConditional(self, conditional):
+        print('if (', end='')
         self.visit(conditional.condition, False)
-        print('){')
+        print(') {')
         self.ind_len += 1
         for expr in conditional.if_true:
             self.visit(expr)
         self.ind_len -= 1
-        print(self.ind * self.ind_len + '}', end='')
+        self.indent()
+        print('}', end='')
         self.ind_len += 1
         if conditional.if_false is not None:
-            print('else{')
+            print(' else {')
             for expr in conditional.if_false:
                 self.visit(expr)
             self.ind_len -= 1
-            print(self.ind * self.ind_len + '};')
+            self.indent()
+            print('}', end='')
         else:
-            print(';')
             self.ind_len -= 1
 
-    def visitFunctionDefinition(self, fdef, is_statement=True):
-        print(self.ind * self.ind_len + 'def', fdef.name, end='')
+    def visitFunctionDefinition(self, fdef):
+        print('def', fdef.name, end='')
         print('(', end='')
         function = fdef.function
-        if(len(function.args) > 0):
+        if function.args:
             for args in function.args[:-1]:
                 print(args + ', ', end='')
             print(function.args[-1], end='')
@@ -47,60 +58,57 @@ class PrettyPrinter:
         for expr in function.body:
             self.visit(expr)
         self.ind_len -= 1
-        print(self.ind * self.ind_len + '};')
+        self.indent()
+        print('}', end='')
 
-    def visitNumber(self, num, is_statement=True):
-        print(self.ind * self.ind_len if is_statement else '', end='')
-        print(num.value, end=';\n' if is_statement else '')
+    def visitNumber(self, num):
+        print(num.value, end='')
 
-    def visitFunctionCall(self, fcall, is_statement=True):
+    def visitFunctionCall(self, fcall):
         self.visit(fcall.fun_expr, False)
         print('(', end='')
         for arg in fcall.args[:-1]:
             self.visit(arg, False)
             print(',', end=' ')
         self.visit(fcall.args[-1], False)
-        print(')', end=';\n' if is_statement else '')
+        print(')', end='')
 
-    def visitBinaryOperation(self, boper, is_statement=True):
+    def visitBinaryOperation(self, boper):
         left = boper.lhs
         right = boper.rhs
-        if is_statement:
-            print(self.ind * self.ind_len, end='')
         print('(', end='')
         self.visit(left, False)
         print(') ' + boper.op + ' (', end='')
         self.visit(right, False)
-        print(')', end=';\n' if is_statement else '')
+        print(')', end='')
 
-    def visitUnaryOperation(self, uoper, is_statement=True):
-        if is_statement:
-            print(self.ind * self.ind_len, end='')
+    def visitUnaryOperation(self, uoper):
         print(uoper.op + '(', end='')
         self.visit(uoper.expr, False)
-        print(')', end=';\n' if is_statement else '')
+        print(')', end='')
 
-    def visitReference(self, refer, is_statement=True):
-        print(self.ind * self.ind_len if is_statement else '' + refer.name, end=';\n' if is_statement else '')
+    def visitReference(self, refer):
+        print(refer.name, end='')
 
-    def visitPrint(self, prnt, is_statement=True):
-        print(self.ind * self.ind_len + 'print', end=' ')
+    def visitPrint(self, prnt):
+        print('print', end=' ')
         self.visit(prnt.expr, False)
-        print('', end=';\n' if is_statement else '')
 
-    def visitRead(self, read, is_statement=True):
-        print(self.ind * self.ind_len + 'read ' + read.name + ';')
+    def visitRead(self, read):
+        print('read ' + read.name, end='')
 
 if __name__ == '__main__':
-	printer = PrettyPrinter()
-	function = Function(['a', 'b'], [Conditional(Number(42), [Number(42)], None)])
-	definition = FunctionDefinition('x', function)
-	conditional = Conditional(BinaryOperation(Number(42), '-', Number(42)), [Conditional(BinaryOperation(BinaryOperation(Number(42),
-		                                                                                                                '+',
-		                                                                                                                Reference('a')),
-	                                                                                                    '*',
-	                                                                                                    Number(0)), 
-	                                                                                    [],
-	                                                                                    [Conditional(Number(42), [definition], [])])], [])
-	printer.visit(definition)
-	printer.visit(conditional)
+    printer = PrettyPrinter()
+    function = Function(['a', 'b'], [Conditional(Number(42), [Number(42)], None)])
+    definition = FunctionDefinition('x', function)
+    conditional = Conditional(BinaryOperation(Number(42), '-', Number(42)), [Conditional(BinaryOperation(BinaryOperation(Number(42),
+                                                                                                                        '+',
+                                                                                                                        Reference('a')),
+                                                                                                        '*',
+                                                                                                        Number(0)), 
+                                                                                        [],
+                                                                                        [Conditional(Number(42), [definition], [])])], [])
+    printer.visit(definition)
+    printer.visit(conditional)
+    printer.visit(Read('x'))
+    printer.visit(Print(BinaryOperation(Number(2), '+', Reference('a'))))
