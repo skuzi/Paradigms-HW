@@ -1,6 +1,6 @@
 --useful operator
 (++) [] ys = ys
-(++) x : xs ys = x : (xs ++ ys)
+(++) (x : xs) ys = x : (xs ++ ys)
 --1. Head
 head (x : xs) = x
 --2. Tail
@@ -19,7 +19,7 @@ filter f [] = []
 filter f (x : xs) = if(f(x)) then [x] ++ filter f xs else filter f xs
 --6. Foldl
 foldl _ z [] = z
-foldl f z (xs : x) = foldl f (f z x) xs
+foldl f z (x : xs) = foldl f (f z x) xs
 --7. Concat
 concat xs ys = xs ++ ys
 --8. QuickSort
