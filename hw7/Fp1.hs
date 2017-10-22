@@ -27,3 +27,11 @@ greater' _ [] = []
 greater' key (x:xs) = if(x > key) then x:greater' key xs else greater' key xs
 quicksort' [] = []
 quicksort' (x:xs) = (quicksort' (smaller' x xs)) `concat'` (x:(quicksort' (greater' x xs)))
+--8'. QuicSort v2
+quicksort'' [] = []
+quicksort'' (x:xs) = (quicksort'' (smaller'' x xs)) `concat'` (x:(quicksort'' (greater'' x xs)))
+					where 
+						smaller'' _ [] = []
+						smaller'' key (x:xs) = if(x <= key) then x:smaller'' key xs else smaller'' key xs
+						greater'' _ [] = []
+						greater'' key (x:xs) = if(x > key) then x:greater'' key xs else greater'' key xs
