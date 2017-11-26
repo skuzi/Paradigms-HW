@@ -1,7 +1,7 @@
 #include "ThreadPool.h" 
 #include <cstdlib>
-#include <cmath>
 #include <ctime>
+#include <algorithm>
 #include <iostream>
 
 
@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
     std::time_t start_time = time(NULL);
 
     if(do_tasks(atoi(argv[1]), a)) {
+
     	return -1;
     }
 
