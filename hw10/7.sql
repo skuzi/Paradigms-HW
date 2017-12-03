@@ -1,1 +1,1 @@
-select Country.Name from Country left join City on City.CountryCode = Country.Code group by Country.Name having (sum(City.Population) is NULL or sum(City.Population) * 2 > Country.Population) and Country.Population != 0;
+select Country.Name from Country left join City on City.CountryCode = Country.Code group by Country.Name having (sum(City.Population) is NULL or sum(City.Population) * 2 < Country.Population) and Country.Population != 0;
