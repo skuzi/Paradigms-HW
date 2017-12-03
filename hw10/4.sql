@@ -1,0 +1,1 @@
+select Country.Name, count(*) from Country join City on City.CountryCode = Country.Code where City.Population >= 1000000 group by Country.Name order by count(*) desc;
