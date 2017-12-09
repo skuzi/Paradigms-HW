@@ -7,7 +7,8 @@
 
 std::size_t MAX_DEPTH;
 
-std::vector<Task> sort_tasks;
+Task sort_tasks[100000];
+std::size_t last_task;
 
 int check(std::vector<int> &a) {
     for(std::size_t i = 0; i < a.size() - 1; i++) {
@@ -25,18 +26,18 @@ struct Query {
     ThreadPool* th_pool;
     std::size_t depth;
 
-    Query(std::size_t l, std::size_t r, ThreadPool* th_pool, std::size_t depth = 0)
+    Query(ThreadPool* th_pool, std::size_t l = 0, std::size_t r = 0, std::size_t depth = 0)
         :l(l), r(r), depth(depth)
     {
         this->th_pool = th_pool;
     }
 
+    Query(){}
+
     ~Query(){}
 };
 
-void partition(void* q) {
-    Query* s = (Query*) q;
-
+void partition(Query* s) {
     std::size_t i = s->l, j = s->r;
     if(i > j)
         return;
@@ -55,6 +56,11 @@ void partition(void* q) {
     }
 }
 
+Query left[10000];
+std::size_t last_left;
+Query right[10000];
+std::size_t last_right;
+
 void qsort(void* q) {
     Query* s = (Query*) q;
     if(s->l > s->r)
@@ -65,38 +71,42 @@ void qsort(void* q) {
         return;
     }
 
-    Task partition_task(partition, q);
-    sort_tasks.push_back(partition_task);
-
-    s->th_pool->submit(&partition_task);
+    partition(s);
     std::size_t m = (s->l + s->r) / 2;
 
-    Query left(s->l, m, s->th_pool, s->depth + 1);
-    Query right(m + 1, s->r, s->th_pool, s->depth + 1);
+    left[last_left++] = Query(s->th_pool, s->l, m, s->depth + 1);
+    right[last_right++] = Query(s->th_pool, m + 1, s->r, s->depth + 1);
 
-    Task sort_left(qsort, &left);
-    Task sort_right(qsort, &right);
+    sort_tasks[last_task++] = Task(qsort, &left[last_left - 1]);
+    sort_tasks[last_task++] = Task(qsort, &right[last_right - 1]);
 
-    sort_tasks.push_back(sort_left);
-    sort_tasks.push_back(sort_right);
+    s->th_pool->submit(&sort_tasks[last_task - 1]);
+    s->th_pool->submit(&sort_tasks[last_task - 2]);
+}
 
-    s->th_pool->submit(&sort_left);
-    s->th_pool->submit(&sort_right);
+void foo(void *) {
+    puts("HELLP");
 }
 
 void do_tasks(std::size_t thread_cnt) {
     ThreadPool pool(thread_cnt);
 
-    Query s(0, a.size() - 1, &pool);
+    Query s(&pool, 0, a.size() - 1);
 
-    Task sort_all(qsort, &s);
-    sort_tasks.push_back(sort_all);
+    sort_tasks[last_task++] = Task(qsort, &s);
     
-    pool.submit(&sort_all);
+    pool.submit(sort_tasks);
 
-    for(std::size_t i = 0; i < sort_tasks.size(); i++) {
+    for(std::size_t i = 0; i < last_task; i++) {
         sort_tasks[i].wait();
     }
+    /*std::vector<Task> s;
+    for(int i = 0; i < 5; i++) {
+        s.push_back(Task(foo, NULL));
+    }
+    for(int i = 0; i < 5; i++) {
+        pool.submit(&s[i]);
+    }*/
 }
 
 int main(int argc, char* argv[]) {
