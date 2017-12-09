@@ -1,4 +1,5 @@
 #include "ThreadPool.h"
+#include <iostream>
 
 void Task::wait() {
     pthread_mutex_lock(&m_mutex);
@@ -62,7 +63,6 @@ ThreadPool::~ThreadPool() {
     for (std::size_t i = 0; i < m_threads.size(); i++) {
         pthread_join(m_threads[i], NULL);
     }
-
     pthread_cond_destroy(&m_cond);
     pthread_mutex_destroy(&m_mutex);
 }
