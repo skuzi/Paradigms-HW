@@ -43,7 +43,6 @@ struct Query {
 };
 
 std::queue<std::pair<Task, Query>, std::list<std::pair<Task, Query> > > sort_tasks;
-std::queue<Query, std::list<Query> > queries;
 
 pthread_mutex_t mut;
 void qsort(void* q) {
