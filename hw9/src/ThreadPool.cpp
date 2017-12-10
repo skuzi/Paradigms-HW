@@ -74,14 +74,20 @@ void ThreadPool::submit(Task* task) {
     pthread_mutex_unlock(&m_mutex); 
 }
 
-Task::Task(void (*func) (void*), void* arg) {
+Task::Task(void (*func) (void*) = NULL, void* arg = NULL) {
     pthread_mutex_init(&m_mutex, NULL);
-    pthread_mutex_lock(&m_mutex);
     m_stop = 0;
     m_func = func;
     m_arg = arg;
     pthread_cond_init(&m_cond, NULL);
-    pthread_mutex_unlock(&m_mutex);
+}
+
+Task::Task() {
+    pthread_mutex_init(&m_mutex, NULL);
+    m_stop = 0;
+    m_func = NULL;
+    m_arg = NULL;
+    pthread_cond_init(&m_cond, NULL);
 }
 
 Task::~Task() {
