@@ -74,7 +74,7 @@ void ThreadPool::submit(Task* task) {
     pthread_mutex_unlock(&m_mutex); 
 }
 
-Task::Task(void (*func) (void*) = NULL, void* arg = NULL) {
+Task::Task(void (*func) (void*), void* arg) {
     pthread_mutex_init(&m_mutex, NULL);
     m_stop = 0;
     m_func = func;

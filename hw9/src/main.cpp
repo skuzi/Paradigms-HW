@@ -57,7 +57,7 @@ void qsort(void* q) {
     int pivot = a[(s->l + s->r + 1) / 2];
     auto it1 = std::partition(a.begin() + s->l, a.begin() + s->r + 1, [pivot](int i){ return i < pivot; });
     auto it2 = std::partition(it1, a.begin() + s->r + 1, [pivot](int i){ return i <= pivot; });
-    
+
     pthread_mutex_lock(&mut);
     sort_tasks.push({Task(), Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1)});
     sort_tasks.back().first = Task(qsort, &sort_tasks.back().second);
@@ -75,7 +75,7 @@ void qsort(void* q) {
 }
 
 void do_tasks(std::size_t thread_cnt) {
-    std::time_t start_time = time(NULL);
+    
     ThreadPool pool(thread_cnt);
 
     Query s(&pool, 0, a.size() - 1);
@@ -84,17 +84,12 @@ void do_tasks(std::size_t thread_cnt) {
     
     pool.submit(&sort_tasks.back().first);
 
-    while(!sort_tasks.empty()) {
+    /*while(!sort_tasks.empty()) {
         sort_tasks.front().first.wait();
         sort_tasks.pop();
-    }
+    }*/
+
     
-    if(check(a))
-        puts("FAIL");
-    else
-        puts("SUCCESS");
-    std::time_t end_time = time(NULL);
-    std::cout << (end_time - start_time) << '\n';
 }
 
 int main(int argc, char* argv[]) {
@@ -111,9 +106,17 @@ int main(int argc, char* argv[]) {
     }
 
     pthread_mutex_init(&mut, NULL);
-
+    std::time_t start_time = time(NULL);
+    
     do_tasks(atoi(argv[1]));
-
-    pthread_mutex_destroy(&mut);    
+    
+    if(check(a))
+        puts("FAIL");
+    else
+        puts("SUCCESS");
+    std::time_t end_time = time(NULL);
+    std::cout << (end_time - start_time) << '\n';
+    
+    pthread_mutex_destroy(&mut);
     return 0;
 }
