@@ -12,6 +12,7 @@ struct Task {
     pthread_mutex_t m_mutex;
     pthread_cond_t m_cond;
     Task(void (*func) (void*), void* arg);
+    Task();
     ~Task();
 };
 

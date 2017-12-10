@@ -1,6 +1,7 @@
-EXE = pthread
+EXE = pqsort
 
-CFLAGS = -pthread -Wall -Wextra -Wnull-dereference -Werror -Iinclude
+CFLAGS = -pthread -Wall -Wextra -Wnull-dereference -Iinclude  -O2
+$-fsanitize=thread -g -O2 -fPIE
 
 
 all : bin $(EXE)
@@ -9,7 +10,7 @@ bin:
 	mkdir bin
 
 $(EXE): ./bin/ThreadPool.o ./bin/main.o
-	g++ -pthread -Iinclude ./bin/ThreadPool.o ./bin/main.o -o $(EXE)
+	g++ $(CFLAGS) ./bin/ThreadPool.o ./bin/main.o -o $(EXE)
 
 ./bin/ThreadPool.o: ./src/ThreadPool.cpp
 	g++ -c $(CFLAGS) ./src/ThreadPool.cpp -o ./bin/ThreadPool.o

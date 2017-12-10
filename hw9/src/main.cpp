@@ -88,18 +88,13 @@ void do_tasks(std::size_t thread_cnt) {
         sort_tasks.front().first.wait();
         sort_tasks.pop();
     }
-
-    pthread_mutex_t mut1;
-    pthread_mutex_init(&mut1, NULL);
-    pthread_mutex_lock(&mut1);
+    
     if(check(a))
         puts("FAIL");
     else
         puts("SUCCESS");
     std::time_t end_time = time(NULL);
     std::cout << (end_time - start_time) << '\n';
-    pthread_mutex_unlock(&mut1);
-    pthread_mutex_destroy(&mut1);
 }
 
 int main(int argc, char* argv[]) {
