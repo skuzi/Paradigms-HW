@@ -75,7 +75,7 @@ void qsort(void* q) {
 }
 
 void do_tasks(std::size_t thread_cnt) {
-    
+    std::time_t start_time = time(NULL);
     ThreadPool pool(thread_cnt);
 
     Query s(&pool, 0, a.size() - 1);
@@ -84,12 +84,19 @@ void do_tasks(std::size_t thread_cnt) {
     
     pool.submit(&sort_tasks.back().first);
 
-    /*while(!sort_tasks.empty()) {
+    while(!sort_tasks.empty()) {
         sort_tasks.front().first.wait();
+        pthread_mutex_lock(&mut);
         sort_tasks.pop();
-    }*/
+        pthread_mutex_unlock(&mut);
+    }
 
-    
+    if(check(a))
+        puts("FAIL");
+    else
+        puts("SUCCESS");
+    std::time_t end_time = time(NULL);
+    std::cout << (end_time - start_time) << '\n';
 }
 
 int main(int argc, char* argv[]) {
@@ -106,17 +113,9 @@ int main(int argc, char* argv[]) {
     }
 
     pthread_mutex_init(&mut, NULL);
-    std::time_t start_time = time(NULL);
-    
+
     do_tasks(atoi(argv[1]));
-    
-    if(check(a))
-        puts("FAIL");
-    else
-        puts("SUCCESS");
-    std::time_t end_time = time(NULL);
-    std::cout << (end_time - start_time) << '\n';
-    
+
     pthread_mutex_destroy(&mut);
     return 0;
 }
