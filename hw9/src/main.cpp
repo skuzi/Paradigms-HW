@@ -43,7 +43,7 @@ struct Query {
 };
 
 std::queue<Task, std::list<Task> > sort_tasks;
-std::queue<Query, std::list<Query> > left, right;
+std::queue<Query, std::list<Query> > queries;
 
 pthread_mutex_t mut;
 void qsort(void* q) {
@@ -60,12 +60,12 @@ void qsort(void* q) {
     auto it2 = std::partition(it1, a.begin() + s->r + 1, [pivot](int i){ return i <= pivot; });
     
     pthread_mutex_lock(&mut);
-    left.push(Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1));
-    sort_tasks.push(Task(qsort, &left.back()));
+    queries.push(Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1));
+    sort_tasks.push(Task(qsort, &queries.back()));
     Task& last1 = sort_tasks.back();
 
-    right.push(Query(s->th_pool, it2 - a.begin(), s->r, s->depth + 1));
-    sort_tasks.push(Task(qsort, &right.back()));
+    queries.push(Query(s->th_pool, it2 - a.begin(), s->r, s->depth + 1));
+    sort_tasks.push(Task(qsort, &queries.back()));
     Task& last2 = sort_tasks.back();
 
     pthread_mutex_unlock(&mut);
