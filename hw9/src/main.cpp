@@ -42,7 +42,7 @@ struct Query {
     ~Query(){}
 };
 
-std::queue<Task, std::list<Task> > sort_tasks;
+std::queue<std::pair<Task, Query>, std::list<std::pair<Task, Query> > > sort_tasks;
 std::queue<Query, std::list<Query> > queries;
 
 pthread_mutex_t mut;
@@ -60,13 +60,13 @@ void qsort(void* q) {
     auto it2 = std::partition(it1, a.begin() + s->r + 1, [pivot](int i){ return i <= pivot; });
     
     pthread_mutex_lock(&mut);
-    queries.push(Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1));
-    sort_tasks.push(Task(qsort, &queries.back()));
-    Task& last1 = sort_tasks.back();
+    sort_tasks.push({Task(), Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1)});
+    sort_tasks.back().first = Task(qsort, &sort_tasks.back().second);
+    Task& last1 = sort_tasks.back().first;
 
-    queries.push(Query(s->th_pool, it2 - a.begin(), s->r, s->depth + 1));
-    sort_tasks.push(Task(qsort, &queries.back()));
-    Task& last2 = sort_tasks.back();
+    sort_tasks.push({Task(), Query(s->th_pool, it2 - a.begin(), s->r, s->depth + 1)});
+    sort_tasks.back().first = Task(qsort, &sort_tasks.back().second);
+    Task& last2 = sort_tasks.back().first;
 
     pthread_mutex_unlock(&mut);
 
@@ -81,12 +81,12 @@ void do_tasks(std::size_t thread_cnt) {
 
     Query s(&pool, 0, a.size() - 1);
 
-    sort_tasks.push(Task(qsort, &s));
+    sort_tasks.push({Task(qsort, &s), s});
     
-    pool.submit(&sort_tasks.back());
+    pool.submit(&sort_tasks.back().first);
 
     while(!sort_tasks.empty()) {
-        sort_tasks.front().wait();
+        sort_tasks.front().first.wait();
         sort_tasks.pop();
     }
 
