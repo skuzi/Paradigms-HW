@@ -3,13 +3,13 @@
 #include <ctime>
 #include <utility>
 #include <list>
+#include <queue>
 #include <algorithm>
 #include <iostream>
 #include <atomic>
 
 std::size_t MAX_DEPTH;
 
-std::list<Task> sort_tasks;
 
 int check(std::vector<int> &a) {
     for(std::size_t i = 0; i < a.size() - 1; i++) {
@@ -42,8 +42,8 @@ struct Query {
     ~Query(){}
 };
 
-std::list<Query> left, right;
-
+std::queue<Task, std::list<Task> > sort_tasks;
+std::queue<Query, std::list<Query> > left, right;
 
 pthread_mutex_t mut;
 void qsort(void* q) {
@@ -54,17 +54,18 @@ void qsort(void* q) {
         std::sort(a.begin() + s->l, a.begin() + s->r + 1);
         return;
     }
-    pthread_mutex_lock(&mut);
 
     int pivot = a[(s->l + s->r + 1) / 2];
     auto it1 = std::partition(a.begin() + s->l, a.begin() + s->r + 1, [pivot](int i){ return i < pivot; });
     auto it2 = std::partition(it1, a.begin() + s->r + 1, [pivot](int i){ return i <= pivot; });
     
-    left.push_back(Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1));
-    right.push_back(Query(s->th_pool, it2 - a.begin(), s->r, s->depth + 1));
-    sort_tasks.push_back(Task(qsort, &left.back()));
+    pthread_mutex_lock(&mut);
+    left.push(Query(s->th_pool, s->l, it1 - a.begin() - 1, s->depth + 1));
+    sort_tasks.push(Task(qsort, &left.back()));
     Task& last1 = sort_tasks.back();
-    sort_tasks.push_back(Task(qsort, &right.back()));
+
+    right.push(Query(s->th_pool, it2 - a.begin(), s->r, s->depth + 1));
+    sort_tasks.push(Task(qsort, &right.back()));
     Task& last2 = sort_tasks.back();
 
     pthread_mutex_unlock(&mut);
@@ -80,21 +81,26 @@ void do_tasks(std::size_t thread_cnt) {
 
     Query s(&pool, 0, a.size() - 1);
 
-    sort_tasks.push_back(Task(qsort, &s));
+    sort_tasks.push(Task(qsort, &s));
     
     pool.submit(&sort_tasks.back());
 
     while(!sort_tasks.empty()) {
         sort_tasks.front().wait();
-        sort_tasks.pop_front();
+        sort_tasks.pop();
     }
-    
+
+    pthread_mutex_t mut1;
+    pthread_mutex_init(&mut1, NULL);
+    pthread_mutex_lock(&mut1);
     if(check(a))
         puts("FAIL");
     else
         puts("SUCCESS");
     std::time_t end_time = time(NULL);
     std::cout << (end_time - start_time) << '\n';
+    pthread_mutex_unlock(&mut1);
+    pthread_mutex_destroy(&mut1);
 }
 
 int main(int argc, char* argv[]) {
