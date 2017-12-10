@@ -4,10 +4,11 @@
 #include <utility>
 #include <algorithm>
 #include <iostream>
+#include <atomic>
 
 std::size_t MAX_DEPTH;
 
-Task sort_tasks[100000];
+Task sort_tasks[1000000];
 std::size_t last_task;
 
 int check(std::vector<int> &a) {
@@ -32,33 +33,18 @@ struct Query {
         this->th_pool = th_pool;
     }
 
-    Query(){}
+    Query(){
+        th_pool = NULL;
+        l = 0;
+        r = 0;
+    }
 
     ~Query(){}
 };
 
-void partition(Query* s) {
-    std::size_t i = s->l, j = s->r;
-    if(i > j)
-        return;
-
-    int pivot = a[(i + j) / 2];
-    while(i <= j) {
-        while(a[i] < pivot)
-            i++;
-        while(a[j] > pivot)
-            j--;
-        if(i <= j) {
-            std::swap(a[i], a[j]);
-            i++;
-            j--;
-        }
-    }
-}
-
-Query left[10000];
+Query left[1000000];
 std::size_t last_left;
-Query right[10000];
+Query right[1000000];
 std::size_t last_right;
 
 void qsort(void* q) {
@@ -71,24 +57,57 @@ void qsort(void* q) {
         return;
     }
 
-    partition(s);
-    std::size_t m = (s->l + s->r) / 2;
+    pthread_mutex_t mut1;
+    pthread_mutex_init(&mut1, NULL);
+    pthread_mutex_lock(&mut1);
+    std::size_t i = s->l, j = s->r;
+    //std::cout << i << ' ' << j << '\n';
+    int pivot = a[(i + j + 1) / 2];
+    //std::cout << "pivot is: " << pivot << '\n';
+    while(i <= j) {
+        while(a[i] < pivot) {
+            //std::cout << "i is: " << i << '\n';
+            ++i;
+        }
+        while(a[j] > pivot){
+            //std::cout << "j is: " << j << '\n';
+            --j;
+        }
+        if(i <= j) {
+            /*puts("before: ");
+            for(int t = 0; t < a.size(); t++)
+                std::cout << a[t] << ' ';*/
+            //puts("\n");
+            std::swap(a[i], a[j]);
+            ++i;
+            --j;
+            /*puts("after: ");
+            for(int t = 0; t < a.size(); t++)
+                std::cout << a[t] << ' ';
+            std::cout << '\n';*/
+        }
+    }
+    pthread_mutex_unlock(&mut1);
+    pthread_mutex_destroy(&mut1);
+    std::size_t m = (s->l + s->r + 1) / 2;
 
-    left[last_left++] = Query(s->th_pool, s->l, m, s->depth + 1);
-    right[last_right++] = Query(s->th_pool, m + 1, s->r, s->depth + 1);
+    pthread_mutex_t mut;
+    pthread_mutex_init(&mut, NULL);
+    pthread_mutex_lock(&mut);
+    left[last_left++] = Query(s->th_pool, s->l, j, s->depth + 1);
+    right[last_right++] = Query(s->th_pool, i, s->r, s->depth + 1);
 
     sort_tasks[last_task++] = Task(qsort, &left[last_left - 1]);
     sort_tasks[last_task++] = Task(qsort, &right[last_right - 1]);
+    pthread_mutex_unlock(&mut);
+    pthread_mutex_destroy(&mut);
 
     s->th_pool->submit(&sort_tasks[last_task - 1]);
     s->th_pool->submit(&sort_tasks[last_task - 2]);
 }
 
-void foo(void *) {
-    puts("HELLP");
-}
-
 void do_tasks(std::size_t thread_cnt) {
+    std::time_t start_time = time(NULL);
     ThreadPool pool(thread_cnt);
 
     Query s(&pool, 0, a.size() - 1);
@@ -100,13 +119,8 @@ void do_tasks(std::size_t thread_cnt) {
     for(std::size_t i = 0; i < last_task; i++) {
         sort_tasks[i].wait();
     }
-    /*std::vector<Task> s;
-    for(int i = 0; i < 5; i++) {
-        s.push_back(Task(foo, NULL));
-    }
-    for(int i = 0; i < 5; i++) {
-        pool.submit(&s[i]);
-    }*/
+    std::time_t end_time = time(NULL);
+    std::cout << (end_time - start_time) << '\n';
 }
 
 int main(int argc, char* argv[]) {
@@ -120,7 +134,6 @@ int main(int argc, char* argv[]) {
         a[i] = rand();
     }
 
-    std::time_t start_time = time(NULL);
 
     do_tasks(atoi(argv[1]));
     if(check(a)) {
@@ -128,8 +141,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::time_t end_time = time(NULL);
-    std::cout << (end_time - start_time) << '\n';
     puts("SUCCESS");
     return 0;
 }
