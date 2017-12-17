@@ -1,0 +1,1 @@
+git commit -m "Commit only A.txt" A.txt
